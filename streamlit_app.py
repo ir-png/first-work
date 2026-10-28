@@ -17,7 +17,7 @@ st.markdown("---")
 # ==========================================
 # 2. LOAD & CHRONOLOGICALLY SORT DATASET
 # ==========================================
-file_path = r"C:\Users\SMART HUB\Downloads\vastsurvive\vastsurvive.xlsx"
+file_path = "vastsurvive.xlsx"
 
 @st.cache_data
 def load_data():
