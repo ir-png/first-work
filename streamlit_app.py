@@ -17,6 +17,7 @@ st.markdown("---")
 # ==========================================
 # 2. LOAD & CHRONOLOGICALLY SORT DATASET
 # ==========================================
+# FIXED: Relative path ensures it works both locally and deployed on the cloud
 file_path = "vastsurvive.xlsx"
 
 @st.cache_data
@@ -67,17 +68,40 @@ try:
     
     chart_data = df[[date_col, selected_metric]]
     
-    # Sort order is preserved explicitly using alt.Sort(field=...) or using the sorted dataframe index order
-    bar_chart = alt.Chart(chart_data).mark_bar(color="#1c83e1").encode(
-        x=alt.X(f"{date_col}:N", title="Reporting Period", axis=alt.Axis(labelAngle=0), sort=df[date_col].tolist()),
-        y=alt.Y(f"{selected_metric}:Q", title=selected_metric),
-        tooltip=[date_col, selected_metric]
-    ).properties(
-        width="container",
-        height=400
+    # Base chart encoding mapping the X and Y coordinates
+    # CUSTOMIZATION: labelAngle=-90 rotates labels to be completely vertical
+    base_chart = alt.Chart(chart_data).encode(
+        x=alt.X(f"{date_col}:N", title="Reporting Period", axis=alt.Axis(labelAngle=-90), sort=df[date_col].tolist()),
+        y=alt.Y(f"{selected_metric}:Q", title=selected_metric)
     )
     
-    st.altair_chart(bar_chart, use_container_width=True)
+    # 1. Customizing the Bars (Color, Hover effects)
+    bars = base_chart.mark_bar(
+        color="#1c83e1",
+        cornerRadiusTopLeft=4,
+        cornerRadiusTopRight=4
+    ).encode(
+        tooltip=[date_col, selected_metric]
+    )
+    
+    # 2. Customizing Data Numbers on Top of Bars
+    text_labels = base_chart.mark_text(
+        align='center',
+        baseline='bottom',
+        dy=-5,  # Shifts the text slightly above the bar
+        color='#333333',
+        fontWeight='bold'
+    ).encode(
+        text=alt.Text(f"{selected_metric}:Q", format=".0f")
+    )
+    
+    # Layering bars and text labels together
+    final_chart = alt.layer(bars, text_labels).properties(
+        width="container",
+        height=450
+    )
+    
+    st.altair_chart(final_chart, use_container_width=True)
 
     st.markdown("---")
 
